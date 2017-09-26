@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>百度API测试</title>
+  <style>
+    .map {
+      width: 70%;
+      height: 500px;
+      float: left;
+    }
+    .map-info {
+      width: 30%;
+      height: 500px;
+      float: left;
+      overflow-y: auto;
+    }
+    .map-hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="J_map_hidden" class="map-hidden"></div>
+  <div class="map" id="J_map"></div>
+  <div class="map-info" id="J_map_info"></div>
+  <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=78VbyhkgtDoNSCar8KrU7sIXb96jrnqC"></script>
+  <script>
+  showMap('张园东路2号（上海大观园向西500米）', '中国');
+  function showMap(address, cityName) {
+    var mapHidden = new BMap.Map("J_map_hidden");    // 创建Map实例
+    mapHidden.centerAndZoom(cityName, 15);  // 初始化地图,设置中心点坐标和地图级别
+    var myGeo = new BMap.Geocoder();
+  	// 将地址解析结果显示在地图上,并调整地图视野
+  	myGeo.getPoint(address, function(point){
+  		if (point) {
+        console.log('point: ', point);
+        var map = new BMap.Map("J_map");
+  			map.centerAndZoom(point, 15);
+  			map.addOverlay(new BMap.Marker(point));
+
+        // 地图信息文字显示
+        // var myKeys = ["公交", "学校", "医院", "购物", "银行"];
+        var options = {
+      		onSearchComplete: function(results){
+            console.log('results: ', results, 'results.getPoi(0): ', results.getPoi(0));
+      			// 判断状态是否正确
+      			if (local.getStatus() == BMAP_STATUS_SUCCESS){
+              var dl = $('<dl></dl>');
+              var dt = $('<dt></dt>');
+              var dd = $('<dd></dd>');
+              var ul = $('<ul></ul>');
+      				var s = [];
+      				for (var i = 0; i < results.getCurrentNumPois(); i ++){
+                // ul.append('<h3>测试话</h3>')
+                ul.append('<li><h3>' + results.getPoi(i).title + '</h3><p>' + results.getPoi(i).address + '</p></li>');
+      					// s.push(results.getPoi(i).title + ", " + results.getPoi(i).address);
+      				}
+              dt.append(results.keyword || '');
+              dd.append(ul);
+              dl.append(dt);
+              dl.append(dd);
+              $("#J_map_info").append(dl);
+      				// document.getElementById("J_map_info").innerHTML = s.join("<br/>");
+      			}
+      		}
+      	};
+        var local = new BMap.LocalSearch(map, options);
+        local.searchNearby("公交", point, 5000);
+        local.searchNearby("学校", point, 5000);
+        local.searchNearby("医院", point, 5000);
+        local.searchNearby("购物", point, 5000);
+        local.searchNearby("银行", point, 5000);
+        map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
+        // map.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
+        map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+  		}else{
+        console.log('选择地址没有解析到结果');
+  			// alert("您选择地址没有解析到结果!");
+  		}
+  	}, cityName);
+  }
+
+  </script>
+</body>
+</html>
